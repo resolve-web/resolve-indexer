@@ -9,6 +9,7 @@ export type BuildServerOptions = {
   health: HealthDeps;
   /** When false, disables Fastify logging (useful in tests). */
   logger?: boolean;
+  corsOrigins?: string[];
 };
 
 export async function buildServer(
@@ -19,6 +20,20 @@ export async function buildServer(
   });
 
   app.decorate("db", opts.db);
+
+  const allowedOrigins = new Set(opts.corsOrigins ?? []);
+  app.addHook("onRequest", async (request, reply) => {
+    const origin = request.headers.origin;
+    if (origin && allowedOrigins.has(origin)) {
+      reply.header("access-control-allow-origin", origin);
+      reply.header("vary", "Origin");
+    }
+    if (request.method === "OPTIONS") {
+      reply.header("access-control-allow-methods", "GET,OPTIONS");
+      reply.header("access-control-allow-headers", "content-type");
+      return reply.status(204).send();
+    }
+  });
 
   app.setErrorHandler((err, _req, reply) => {
     const statusCode =

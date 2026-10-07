@@ -36,6 +36,7 @@ async function main(): Promise<void> {
   const app = await buildServer({
     db,
     logger: true,
+    corsOrigins: config.corsOrigins,
     health: {
       getCursor: () => worker?.getCursor() ?? null,
       getLastIngestAt: () => worker?.getLastIngestAt() ?? null,

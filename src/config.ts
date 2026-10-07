@@ -39,6 +39,7 @@ const ConfigSchema = z.object({
     .default("info"),
   BACKFILL_MARKET_META: boolFromEnv.default(true),
   HOST: z.string().default("0.0.0.0"),
+  CORS_ORIGINS: z.string().default("http://localhost:3000"),
 });
 
 export type AppConfig = {
@@ -53,6 +54,7 @@ export type AppConfig = {
   logLevel: "fatal" | "error" | "warn" | "info" | "debug" | "trace" | "silent";
   backfillMarketMeta: boolean;
   host: string;
+  corsOrigins: string[];
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -75,6 +77,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     logLevel: parsed.LOG_LEVEL,
     backfillMarketMeta: parsed.BACKFILL_MARKET_META,
     host: parsed.HOST,
+    corsOrigins: parsed.CORS_ORIGINS.split(",").map((value) => value.trim()).filter(Boolean),
   };
 
   if (parsed.START_LEDGER !== undefined) {

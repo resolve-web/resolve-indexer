@@ -13,11 +13,17 @@ describe("GET /health", () => {
     app = await buildServer({
       db,
       logger: false,
+      corsOrigins: ["https://resolve.example"],
       health: {
         getCursor: () => "12345",
         getLastIngestAt: () => "2026-01-01T00:00:00.000Z",
       },
     });
+  });
+
+  it("allows configured browser origins", async () => {
+    const res = await app.inject({ method: "GET", url: "/health", headers: { origin: "https://resolve.example" } });
+    assert.equal(res.headers["access-control-allow-origin"], "https://resolve.example");
   });
 
   after(async () => {
