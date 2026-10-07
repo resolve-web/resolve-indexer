@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { config as loadDotenv } from "dotenv";
 import path from "node:path";
+import { StrKey } from "@stellar/stellar-sdk";
 
 loadDotenv();
 
@@ -56,6 +57,9 @@ export type AppConfig = {
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const parsed = ConfigSchema.parse(env);
+  if (parsed.RESOLVE_CONTRACT_ID && !StrKey.isValidContract(parsed.RESOLVE_CONTRACT_ID)) {
+    throw new Error("RESOLVE_CONTRACT_ID must be a valid Stellar contract address");
+  }
   const databasePath = path.isAbsolute(parsed.DATABASE_PATH)
     ? parsed.DATABASE_PATH
     : path.resolve(process.cwd(), parsed.DATABASE_PATH);
