@@ -14,7 +14,7 @@ Production-oriented Node.js / TypeScript service that indexes **Resolve** Soroba
 
 | Piece | Choice |
 | --- | --- |
-| Runtime | Node.js 20+ |
+| Runtime | Node.js 22+ |
 | Language | TypeScript (strict) |
 | HTTP | Fastify |
 | DB | **SQLite via Node.js built-in `node:sqlite` (`DatabaseSync`)** — zero native addons |
@@ -70,7 +70,8 @@ HTTP listens on `PORT` (default `3080`). Ingest polls every `POLL_INTERVAL_MS`.
 
 | Method | Path | Notes |
 | --- | --- | --- |
-| `GET` | `/health` | `{ status, cursor, lastIngestAt }` |
+| `GET` | `/health` | Liveness: `{ status, cursor, lastIngestAt }` |
+| `GET` | `/ready` | 200 only after configured ingest has a cursor; otherwise 503 |
 | `GET` | `/markets?status=&limit=&cursor=` | Empty DB → `{ markets: [], nextCursor: null }` |
 | `GET` | `/markets/:id` | 404 if missing |
 | `GET` | `/markets/:id/positions` | |
@@ -100,9 +101,11 @@ DATABASE_PATH=./data/indexer.sqlite
 PORT=3080
 POLL_INTERVAL_MS=5000
 START_LEDGER=
+CORS_ORIGINS=http://localhost:3000
 ```
 
 If RPC URL or contract ID is missing, the process still serves the HTTP API and disables ingest (logged as a warning).
+For a public deployment, set `CORS_ORIGINS` to the comma-separated production app origins and use `/ready` for the platform readiness probe.
 
 ## Project layout
 
