@@ -17,6 +17,7 @@ describe("GET /health", () => {
       health: {
         getCursor: () => "12345",
         getLastIngestAt: () => "2026-01-01T00:00:00.000Z",
+        isIngestEnabled: () => true,
       },
     });
   });
@@ -37,5 +38,11 @@ describe("GET /health", () => {
     assert.equal(body.status, "ok");
     assert.equal(body.cursor, "12345");
     assert.equal(body.lastIngestAt, "2026-01-01T00:00:00.000Z");
+  });
+
+  it("reports readiness only after ingest has a cursor", async () => {
+    const res = await app.inject({ method: "GET", url: "/ready" });
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.json().status, "ready");
   });
 });

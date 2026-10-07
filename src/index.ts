@@ -40,6 +40,7 @@ async function main(): Promise<void> {
     health: {
       getCursor: () => worker?.getCursor() ?? null,
       getLastIngestAt: () => worker?.getLastIngestAt() ?? null,
+      isIngestEnabled: () => worker !== null,
     },
   });
 
