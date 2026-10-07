@@ -6,7 +6,7 @@ Resolve Indexer stores a derived view of on-chain events for discovery and histo
 
 ## Reporting a vulnerability
 
-Please report security issues privately to the Resolve maintainers (open a private security advisory on the repository if available, or email the project security contact listed in the parent org README).
+Please use [GitHub private vulnerability reporting](https://github.com/resolve-web/resolve-indexer/security/advisories/new).
 
 Include:
 
