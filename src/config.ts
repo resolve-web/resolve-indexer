@@ -15,8 +15,8 @@ const boolFromEnv = z
 
 const ConfigSchema = z.object({
   STELLAR_NETWORK: z.string().default("testnet"),
-  SOROBAN_RPC_URL: z.string().url().or(z.literal("")).default(""),
-  RESOLVE_CONTRACT_ID: z.string().default(""),
+  SOROBAN_RPC_URL: z.string().url().or(z.literal("")).default("https://soroban-testnet.stellar.org"),
+  RESOLVE_CONTRACT_ID: z.string().default("CD3YJNAYKVKT72DYPVS644OPNVNW6673TUIQWGXXA4VQD7536ARWB6MZ"),
   NETWORK_PASSPHRASE: z
     .string()
     .default("Test SDF Network ; September 2015"),
