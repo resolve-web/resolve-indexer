@@ -107,6 +107,10 @@ CORS_ORIGINS=http://localhost:3000
 If RPC URL or contract ID is missing, the process still serves the HTTP API and disables ingest (logged as a warning).
 For a public deployment, set `CORS_ORIGINS` to the comma-separated production app origins and use `/ready` for the platform readiness probe.
 
+## Deploy
+
+The repository includes a Node 22 production `Dockerfile` and a `render.yaml` Blueprint with a persistent SQLite disk. The Blueprint is preconfigured for the verified Resolve testnet contract. Update `CORS_ORIGINS` if the app hostname changes, then create the service from the Blueprint. Use `/health` for liveness and `/ready` to confirm that event ingestion has established its first checkpoint.
+
 ## Project layout
 
 ```
