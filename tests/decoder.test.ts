@@ -117,6 +117,41 @@ describe("decodeResolveEvent", () => {
     }
   });
 
+  it("decodes the enum vector shape emitted by live Soroban events", () => {
+    const staked = decodeResolveEvent(
+      syntheticRawEvent(
+        ["staked", 1n, USER],
+        { side: ["Yes"], amount: 10n, yes_pool: 10n, no_pool: 0n },
+      ),
+    );
+    assert.ok(staked && staked.eventName === "staked");
+    if (staked && staked.eventName === "staked") {
+      assert.equal(staked.side, "yes");
+    }
+
+    const resolved = decodeResolveEvent(
+      syntheticRawEvent(
+        ["market_resolved", 1n, RESOLVER],
+        { outcome: ["Yes"] },
+      ),
+    );
+    assert.ok(resolved && resolved.eventName === "market_resolved");
+    if (resolved && resolved.eventName === "market_resolved") {
+      assert.equal(resolved.outcome, "yes");
+    }
+
+    const claimed = decodeResolveEvent(
+      syntheticRawEvent(
+        ["claimed", 1n, USER],
+        { amount: 10n, kind: ["Payout"] },
+      ),
+    );
+    assert.ok(claimed && claimed.eventName === "claimed");
+    if (claimed && claimed.eventName === "claimed") {
+      assert.equal(claimed.kind, "payout");
+    }
+  });
+
   it("returns null for unknown event names", () => {
     const raw = syntheticRawEvent(["something_else", 1n], {});
     assert.equal(decodeResolveEvent(raw), null);
