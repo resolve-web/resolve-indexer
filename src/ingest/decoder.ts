@@ -293,7 +293,18 @@ function requireClaimKind(v: unknown): ClaimKind {
 function enumToNumber(v: unknown): number | null {
   if (typeof v === "number") return v;
   if (typeof v === "bigint") return Number(v);
-  if (typeof v === "string" && /^-?\d+$/.test(v)) return Number(v);
+  if (typeof v === "string") {
+    if (/^-?\d+$/.test(v)) return Number(v);
+    const label = v.toLowerCase();
+    if (label === "yes" || label === "payout") return 0;
+    if (label === "no" || label === "refund") return 1;
+    if (label === "invalid") return 2;
+  }
+  // Soroban contract enums are commonly decoded from ScVal as a one-item
+  // vector, for example ["Yes"] or ["Payout"].
+  if (Array.isArray(v) && v.length === 1) {
+    return enumToNumber(v[0]);
+  }
   if (v && typeof v === "object") {
     const obj = v as Record<string, unknown>;
     // Enum object forms: { tag: "Yes" } or { Yes: void } or { _enum: ... }
