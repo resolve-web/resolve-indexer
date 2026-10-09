@@ -16,7 +16,7 @@ services:
       - key: DATABASE_PATH
         value: /data/indexer.sqlite
       - key: CORS_ORIGINS
-        value: https://resolve-app-kappa.vercel.app,http://localhost:3000
+        value: https://resolveit-app.vercel.app,http://localhost:3000
       - key: BACKFILL_MARKET_META
         value: "true"
     disk:
