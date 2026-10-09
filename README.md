@@ -49,7 +49,7 @@ Decoding lives in `src/ingest/decoder.ts` and tolerates Map vs Vec data and seve
 cp .env.example .env
 # set RESOLVE_CONTRACT_ID and SOROBAN_RPC_URL
 
-npm install
+npm ci
 npm run migrate
 npm run dev
 ```

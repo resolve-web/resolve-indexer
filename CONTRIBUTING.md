@@ -5,7 +5,7 @@ Thanks for helping improve the Resolve indexer.
 ## Development
 
 1. Use Node.js 22+.
-2. `npm install`
+2. `npm ci`
 3. `cp .env.example .env` and set at least `RESOLVE_CONTRACT_ID` / `SOROBAN_RPC_URL` for live ingest.
 4. `npm run migrate`
 5. `npm test` and `npm run build` before opening a PR.
