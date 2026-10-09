@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { applyMigrations, openMemoryDatabase } from "../src/db/index.js";
-import { getMarket, isEventProcessed, listUserPositions } from "../src/db/queries.js";
+import {
+  clearCheckpoint,
+  getCheckpoint,
+  getMarket,
+  hasIndexedMarkets,
+  isEventProcessed,
+  listUserPositions,
+  setCheckpoint,
+} from "../src/db/queries.js";
 import { applyRawEvent } from "../src/ingest/apply.js";
 import { syntheticRawEvent } from "../src/ingest/decoder.js";
 
@@ -17,6 +25,15 @@ function setup() {
 }
 
 describe("idempotent event apply", () => {
+  it("can reset an empty deployment checkpoint for a configured backfill", () => {
+    const db = setup();
+    assert.equal(hasIndexedMarkets(db), false);
+    setCheckpoint(db, "newest-cursor");
+    assert.equal(getCheckpoint(db), "newest-cursor");
+    clearCheckpoint(db);
+    assert.equal(getCheckpoint(db), null);
+  });
+
   it("applies market lifecycle once and skips duplicates", () => {
     const db = setup();
 

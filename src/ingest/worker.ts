@@ -1,7 +1,12 @@
 import type { Logger } from "pino";
 import type { AppConfig } from "../config.js";
 import { withTransaction, type SqliteDb } from "../db/index.js";
-import { getCheckpoint, setCheckpoint } from "../db/queries.js";
+import {
+  clearCheckpoint,
+  getCheckpoint,
+  hasIndexedMarkets,
+  setCheckpoint,
+} from "../db/queries.js";
 import {
   applyRawEvent,
   maybeBackfillMarketMeta,
@@ -106,7 +111,19 @@ export class IngestWorker {
       );
     }
 
-    const checkpoint = getCheckpoint(this.db);
+    let checkpoint = getCheckpoint(this.db);
+    if (
+      checkpoint &&
+      this.config.startLedger !== undefined &&
+      !hasIndexedMarkets(this.db)
+    ) {
+      this.log.warn(
+        { checkpoint, startLedger: this.config.startLedger },
+        "empty index with a configured start ledger; replaying deployment history",
+      );
+      clearCheckpoint(this.db);
+      checkpoint = null;
+    }
     let startLedger = this.config.startLedger;
     let cursor = checkpoint ?? undefined;
 

@@ -12,7 +12,7 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "migrate": "tsx src/db/migrate.ts",
-    "test": "tsx --test tests/**/*.test.ts",
+    "test": "tsx --test tests/*.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
