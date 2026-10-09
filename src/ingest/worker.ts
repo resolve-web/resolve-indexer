@@ -3,6 +3,7 @@ import type { AppConfig } from "../config.js";
 import { withTransaction, type SqliteDb } from "../db/index.js";
 import {
   clearCheckpoint,
+  countProcessedEvents,
   getCheckpoint,
   hasIndexedMarkets,
   setCheckpoint,
@@ -115,7 +116,7 @@ export class IngestWorker {
     if (
       checkpoint &&
       this.config.startLedger !== undefined &&
-      !hasIndexedMarkets(this.db)
+      (!hasIndexedMarkets(this.db) || countProcessedEvents(this.db) <= 1)
     ) {
       this.log.warn(
         { checkpoint, startLedger: this.config.startLedger },

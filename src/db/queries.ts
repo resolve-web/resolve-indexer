@@ -42,6 +42,13 @@ export function hasIndexedMarkets(db: SqliteDb): boolean {
   return Boolean(row);
 }
 
+export function countProcessedEvents(db: SqliteDb): number {
+  const row = db.prepare("SELECT COUNT(*) AS total FROM processed_events").get() as {
+    total: number;
+  };
+  return Number(row.total);
+}
+
 export function getCheckpointUpdatedAt(db: SqliteDb): string | null {
   const row = db
     .prepare("SELECT updated_at FROM checkpoints WHERE id = ?")

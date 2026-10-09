@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { applyMigrations, openMemoryDatabase } from "../src/db/index.js";
 import {
   clearCheckpoint,
+  countProcessedEvents,
   getCheckpoint,
   getMarket,
   hasIndexedMarkets,
@@ -32,6 +33,7 @@ describe("idempotent event apply", () => {
     assert.equal(getCheckpoint(db), "newest-cursor");
     clearCheckpoint(db);
     assert.equal(getCheckpoint(db), null);
+    assert.equal(countProcessedEvents(db), 0);
   });
 
   it("applies market lifecycle once and skips duplicates", () => {
@@ -58,6 +60,7 @@ describe("idempotent event apply", () => {
       assert.equal(dup.reason, "duplicate");
     }
     assert.equal(isEventProcessed(db, created.txHash, 0), true);
+    assert.equal(countProcessedEvents(db), 1);
 
     const staked = syntheticRawEvent(
       ["staked", 1n, USER],

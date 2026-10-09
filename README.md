@@ -111,7 +111,7 @@ For a public deployment, set `CORS_ORIGINS` to the comma-separated production ap
 
 The repository includes a Node 22 production `Dockerfile` and a `render.yaml` Blueprint with a persistent SQLite disk. The Blueprint is preconfigured for the verified Resolve testnet contract. Update `CORS_ORIGINS` if the app hostname changes, then create the service from the Blueprint. Use `/health` for liveness and `/ready` to confirm that event ingestion has established its first checkpoint.
 
-`START_LEDGER` is pinned to the first verified lifecycle transaction. If a deployment has a checkpoint but no indexed markets, the worker safely clears that empty checkpoint and replays from `START_LEDGER`; processed-event uniqueness keeps the replay idempotent.
+`START_LEDGER` is pinned to the first verified lifecycle transaction. If a deployment has a checkpoint but no indexed markets—or only the initial creation event was decoded—the worker safely clears that incomplete checkpoint and replays from `START_LEDGER`; processed-event uniqueness keeps the replay idempotent.
 
 ## Project layout
 
