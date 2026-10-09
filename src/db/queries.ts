@@ -31,6 +31,17 @@ export function setCheckpoint(db: SqliteDb, cursor: string): void {
   ).run(CHECKPOINT_ID, cursor, nowIso());
 }
 
+export function clearCheckpoint(db: SqliteDb): void {
+  db.prepare("DELETE FROM checkpoints WHERE id = ?").run(CHECKPOINT_ID);
+}
+
+export function hasIndexedMarkets(db: SqliteDb): boolean {
+  const row = db.prepare("SELECT 1 AS ok FROM markets LIMIT 1").get() as
+    | { ok: number }
+    | undefined;
+  return Boolean(row);
+}
+
 export function getCheckpointUpdatedAt(db: SqliteDb): string | null {
   const row = db
     .prepare("SELECT updated_at FROM checkpoints WHERE id = ?")

@@ -19,6 +19,8 @@ services:
         value: https://resolveit-app.vercel.app,http://localhost:3000
       - key: BACKFILL_MARKET_META
         value: "true"
+      - key: START_LEDGER
+        value: "5095009"
     disk:
       name: resolve-indexer-data
       mountPath: /data
