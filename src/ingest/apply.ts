@@ -183,16 +183,51 @@ export async function maybeBackfillMarketMeta(
   marketId: bigint,
   backfill: MarketMetaBackfill | undefined,
   log?: Logger,
-): Promise<void> {
-  if (!backfill) return;
+): Promise<boolean> {
+  if (!backfill) return false;
+  const numericId = Number(marketId);
+  if (!Number.isSafeInteger(numericId) || numericId < 0) {
+    log?.warn(
+      { marketId: marketId.toString() },
+      "skipping market meta backfill for unsafe market id",
+    );
+    return false;
+  }
   try {
     const meta = await backfill(marketId);
-    if (!meta) return;
-    updateMarketMeta(db, Number(marketId), meta);
+    if (!meta) return false;
+    const patch: {
+      question?: string | null;
+      description?: string | null;
+      createdAt?: number | null;
+    } = {};
+    if (typeof meta.question === "string" && meta.question.length > 0) {
+      patch.question = meta.question;
+    }
+    if (typeof meta.description === "string") {
+      patch.description = meta.description;
+    }
+    if (
+      typeof meta.createdAt === "number" &&
+      Number.isSafeInteger(meta.createdAt) &&
+      meta.createdAt >= 0
+    ) {
+      patch.createdAt = meta.createdAt;
+    }
+    if (
+      patch.question === undefined &&
+      patch.description === undefined &&
+      patch.createdAt === undefined
+    ) {
+      return false;
+    }
+    updateMarketMeta(db, numericId, patch);
+    return true;
   } catch (err) {
     log?.warn(
       { err: String(err), marketId: marketId.toString() },
       "market meta backfill failed",
     );
+    return false;
   }
 }

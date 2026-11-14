@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { listUserActivity, listUserPositions } from "../db/queries.js";
 import type { ActivityRow, PositionRow } from "../types.js";
 import {

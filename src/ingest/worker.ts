@@ -6,6 +6,7 @@ import {
   countProcessedEvents,
   getCheckpoint,
   hasIndexedMarkets,
+  listMarketIdsMissingMeta,
   setCheckpoint,
 } from "../db/queries.js";
 import {
@@ -171,11 +172,12 @@ export class IngestWorker {
     });
     this.lastIngestAt = new Date().toISOString();
 
-    if (
-      this.config.backfillMarketMeta &&
-      createdMarketIds.length > 0
-    ) {
-      for (const marketId of createdMarketIds) {
+    if (this.config.backfillMarketMeta) {
+      const candidateIds = new Set<bigint>(createdMarketIds);
+      for (const missingId of listMarketIdsMissingMeta(this.db, 25)) {
+        candidateIds.add(missingId);
+      }
+      for (const marketId of candidateIds) {
         await maybeBackfillMarketMeta(
           this.db,
           marketId,
