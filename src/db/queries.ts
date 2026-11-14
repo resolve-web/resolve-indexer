@@ -289,6 +289,24 @@ export function getMarket(db: SqliteDb, id: number): MarketRow | null {
   );
 }
 
+export function listMarketIdsMissingMeta(
+  db: SqliteDb,
+  limit = 25,
+): bigint[] {
+  const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 200);
+  const rows = db
+    .prepare(
+      `
+      SELECT id FROM markets
+      WHERE question IS NULL OR description IS NULL
+      ORDER BY id ASC
+      LIMIT ?
+      `,
+    )
+    .all(safeLimit) as Array<{ id: number }>;
+  return rows.map((row) => BigInt(row.id));
+}
+
 export function listMarkets(
   db: SqliteDb,
   opts: {

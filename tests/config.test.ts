@@ -18,4 +18,18 @@ describe("configuration", () => {
   it("rejects malformed contract addresses", () => {
     assert.throws(() => loadConfig({ RESOLVE_CONTRACT_ID: "CINVALID" }), /valid Stellar contract/);
   });
+
+  it("parses BACKFILL_MARKET_META enable/disable flags and rejects invalid values", () => {
+    assert.equal(loadConfig({}).backfillMarketMeta, true);
+    for (const enabled of ["true", "TRUE", "1", "yes", "on"]) {
+      assert.equal(loadConfig({ BACKFILL_MARKET_META: enabled }).backfillMarketMeta, true);
+    }
+    for (const disabled of ["false", "FALSE", "0", "no", "off", ""]) {
+      assert.equal(loadConfig({ BACKFILL_MARKET_META: disabled }).backfillMarketMeta, false);
+    }
+    assert.throws(
+      () => loadConfig({ BACKFILL_MARKET_META: "maybe" }),
+      /Invalid boolean flag value/,
+    );
+  });
 });

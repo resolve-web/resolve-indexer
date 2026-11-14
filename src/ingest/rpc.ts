@@ -11,21 +11,48 @@ import {
 import type { Logger } from "pino";
 import type { RawIndexerEvent } from "../types.js";
 
+export type RpcServerLike = Pick<
+  rpc.Server,
+  "getLatestLedger" | "getEvents" | "simulateTransaction"
+>;
+
 export type RpcClientOptions = {
   rpcUrl: string;
   networkPassphrase: string;
   contractId: string;
-  log?: Logger;
+  log?: Logger | undefined;
+  server?: RpcServerLike | undefined;
 };
 
+const SIMULATION_SOURCE_PUBLIC_KEY = Keypair.fromRawEd25519Seed(
+  Buffer.alloc(32, 0),
+).publicKey();
+
+function decodeTextValue(raw: unknown): string | null {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw === "string") return raw;
+  if (raw instanceof Uint8Array) {
+    return Buffer.from(raw).toString("utf8");
+  }
+  return String(raw);
+}
+
+function decodeTimestampValue(raw: unknown): number | null {
+  if (raw === null || raw === undefined) return null;
+  const n = typeof raw === "bigint" ? Number(raw) : Number(raw);
+  if (!Number.isSafeInteger(n) || n < 0) return null;
+  return n;
+}
+
 export class SorobanEventClient {
-  private readonly server: rpc.Server;
+  private readonly server: RpcServerLike;
   private readonly contractId: string;
   private readonly networkPassphrase: string;
   private readonly log?: Logger;
 
   constructor(opts: RpcClientOptions) {
-    this.server = new rpc.Server(opts.rpcUrl, { allowHttp: true });
+    this.server =
+      opts.server ?? new rpc.Server(opts.rpcUrl, { allowHttp: true });
     this.contractId = opts.contractId;
     this.networkPassphrase = opts.networkPassphrase;
     if (opts.log) this.log = opts.log;
@@ -93,19 +120,15 @@ export class SorobanEventClient {
     description: string | null;
     createdAt: number | null;
   } | null> {
+    if (marketId < 0n) return null;
     try {
       const contract = new Contract(this.contractId);
-      const account = await this.server
-        .getAccount(this.contractId)
-        .catch(() => null);
-
       const op = contract.call(
         "get_market",
         xdr.ScVal.scvU64(xdr.Uint64.fromString(marketId.toString())),
       );
 
-      const source =
-        account ?? new Account(Keypair.random().publicKey(), "0");
+      const source = new Account(SIMULATION_SOURCE_PUBLIC_KEY, "0");
 
       const tx = new TransactionBuilder(source, {
         fee: "100",
@@ -117,26 +140,36 @@ export class SorobanEventClient {
 
       const sim = await this.server.simulateTransaction(tx);
       if (!rpc.Api.isSimulationSuccess(sim) || !sim.result?.retval) {
-        this.log?.debug(
+        this.log?.warn(
           { marketId: marketId.toString() },
-          "get_market sim failed",
+          "get_market simulation returned no result",
         );
         return null;
       }
 
-      const native = scValToNative(sim.result.retval) as Record<
-        string,
-        unknown
-      >;
-      return {
-        question: native.question != null ? String(native.question) : null,
-        description:
-          native.description != null ? String(native.description) : null,
-        createdAt:
-          native.created_at != null ? Number(native.created_at) : null,
-      };
+      const decoded: unknown = scValToNative(sim.result.retval);
+      if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) {
+        this.log?.warn(
+          { marketId: marketId.toString() },
+          "get_market returned unexpected payload shape",
+        );
+        return null;
+      }
+
+      const native = decoded as Record<string, unknown>;
+      const question = decodeTextValue(native.question);
+      const description = decodeTextValue(native.description);
+      const createdAt = decodeTimestampValue(
+        native.created_at ?? native.createdAt,
+      );
+
+      if (question === null && description === null && createdAt === null) {
+        return null;
+      }
+
+      return { question, description, createdAt };
     } catch (err) {
-      this.log?.debug(
+      this.log?.warn(
         { err: String(err), marketId: marketId.toString() },
         "getMarketMeta error",
       );

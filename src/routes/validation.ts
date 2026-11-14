@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /** Stellar account (G...) or contract (C...) address-ish validation. */
 export const StellarAddressSchema = z
